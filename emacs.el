@@ -19,4 +19,5 @@
   (package-install 'use-package))
 
 ;; bootstrap "config.org"
+(load-file (expand-file-name "~/.emacs.d/setup.el"))
 (org-babel-load-file(expand-file-name "~/.emacs.d/config.org"))
