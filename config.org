@@ -1,0 +1,636 @@
+#+TITLE: Core emacs configuration
+#+PROPERTY: header-args:emacs-lisp results:none
+
+* Editor Display and Control
+** Display
+Configure font
+#+begin_src emacs-lisp :results none
+  (add-to-list 'default-frame-alist '(font . "hack 11"))
+#+end_src
+
+Theme installation and configuration. Currently using EF themes
+#+BEGIN_SRC emacs-lisp :results none
+  ;; Advice function for org-create-inline-image function
+  ;; to alter background colour
+  (defun org--create-inline-image-advice (img)
+    (nconc img (list :background "#ffffff")))
+
+  ;; Advice function for ef-themes-toggle
+  ;; to add or remove advice function for
+  ;; setting org mode image background colour
+  ;; according to the theme being toggled
+  (defun ef-themes-toggle-org-image-background ()
+    (if (eq (ef-themes--current-theme) 'ef-summer)
+        (advice-remove 'org--create-inline-image
+                       #'org--create-inline-image-advice)
+      (advice-add 'org--create-inline-image
+                  :filter-return #'org--create-inline-image-advice)))
+
+  ;; Install theme
+  (use-package ef-themes
+    :ensure t
+
+    :init
+    (setq ef-themes-headings
+          '((0 . (light variable-pitch 1.5))
+            (1 . (light variable-pitch 1.3))
+            (2 . (regular 1.2))
+            (3 . (1.1))
+            (t . (variable-pitch))))
+    (mapc #'disable-theme custom-enabled-themes)
+
+    :config
+    (load-theme 'ef-night :no-confirm)
+    (setq ef-themes-to-toggle '(ef-night ef-summer))
+    (advice-add 'org--create-inline-image
+                :filter-return #'org--create-inline-image-advice)
+    (advice-add 'ef-themes-toggle
+                :after #'ef-themes-toggle-org-image-background)
+
+    :load-path "themes")
+#+END_SRC
+
+** Behaviour
+Default behaviour configuration
+#+BEGIN_SRC emacs-lisp :results none
+    (require 'recentf)
+
+    (setq
+     inhibit-startup-screen t
+     delete-by-moving-to-trash t
+     visible-bell t)
+  
+    (tool-bar-mode 0)
+    (scroll-bar-mode 0)
+    (menu-bar-mode 0)
+
+    ;; Typed text replaces highlighted region
+    (delete-selection-mode t)
+
+    ;; Visual line wrapping
+    (global-visual-line-mode t)
+
+    ;; Winner Undo Mode
+    (winner-mode t)
+
+    ;; Call this function to allow arrow keys
+    ;; to cycles buffers in window
+    (windmove-default-keybindings)
+#+end_SRC
+
+The Ace Window package displays numbers in window corners - can jump between windows by typing the number
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package ace-window
+    :ensure t
+    :init
+    (progn
+      (global-set-key [remap other-window] 'ace-window)
+      (custom-set-faces
+       '(aw-leading-char-face
+	 ((t (:inherit ace-jump-face-foreground :height 3.0)))))))
+#+END_SRC
+
+Which key brings up key binding info
+#+BEGIN_SRC emacs-lisp :results none
+(use-package which-key
+	     :ensure t
+	     :config (which-key-mode))
+#+END_SRC
+
+Swiper search and Counsel find-file enhance searching mini-buffer completion. Counsel uses the same mini-buffer completion as swiper
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package swiper
+    :ensure t
+    :config
+    (progn
+      (ivy-mode 1)
+      (setq ivy-use-virtual-buffers t)
+      (setq enable-recursive-minibuffers t)
+      (global-set-key "\C-s" 'swiper)
+      (global-set-key (kbd "C-c C-r") 'ivy-resume)
+      (global-set-key (kbd "<f6>") 'ivy-resume)
+      (global-set-key (kbd "M-x") 'counsel-M-x)
+      (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+      (global-set-key (kbd "C-x l") 'counsel-locate)))
+
+  (use-package counsel
+    :ensure t)
+#+END_SRC
+
+Auto completion. Brings up a list of options when auto complete options are available. Can use tab to cycle through the list. Note that =M-/= is the default auto complete behaviour (which doesn't display the list of options)
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package auto-complete
+    :ensure t
+    :init
+    (progn
+      (ac-config-default)
+      (global-auto-complete-mode t)))
+
+
+  (use-package smartparens
+    :ensure t
+    :config (progn
+              (require 'smartparens-config))
+    (smartparens-mode))
+#+END_SRC
+
+Colour code bracket depth
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package rainbow-delimiters
+    :ensure t
+    :defer t
+    :init (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+#+END_SRC
+
+Keeps the point away from the top and bottom of the page to minimise sudden scroll jumps. Good-scroll smooths the scrolling action
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package smooth-scrolling
+    :ensure t
+    :config (smooth-scrolling-mode t)
+    (setq smooth-scroll-margin 5))
+
+  (use-package good-scroll
+    :ensure t)
+#+END_SRC
+
+Delete redundant backups
+- Set emacs temporary directory. Backups and auto-saved files are stored here. See the following stack exchange link:
+  - [[https://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files][Stack exchange - emacs backup and autosave]]
+#+BEGIN_SRC emacs-lisp :results none
+  (setq
+   backup-directory-alist `((".*" . "~/.emacs.d/temp"))
+   auto-save-file-name-transforms `((".*" "~/.emacs.d/temp" t)))
+#+END_SRC
+
+Backup and backup version control parameters
+#+BEGIN_SRC emacs-lisp :results none
+  (setq
+   make-backup-files t
+
+   ;; If this is nil, emacs will
+   ;; rename the existing file and then
+   ;; write the modified buffer into a new
+   ;; file. Instead we want to write the backup
+   ;; file into the backup-directory defined above
+   backup-by-copying t
+
+   ;; Add a version number to the backup
+   version-control t
+   delete-old-versions t
+   kept-old-versions 2
+   kept-new-versions 2)
+#+END_SRC
+
+Insert templates with yasnippet
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package yasnippet
+    :ensure t
+    :init (yas-global-mode 1))
+  (use-package yasnippet-snippets
+    :ensure t)
+#+END_SRC
+
+Set up dired behaviour and keybindings
+#+begin_src emacs-lisp :results none
+  (add-hook 'dired-mode-hook
+            (lambda ()
+              (define-key dired-mode-map (kbd "C-<return>")
+                'dired-open-file)))
+
+  ;; Open files externally
+  ;; TODO: Windows equivalent?
+  (defun dired-open-file ()
+    "In dired, open the file named on this line."
+    (interactive)
+    (let* ((file (dired-get-filename nil t)))
+      (message "Opening %s..." file)
+      (call-process "xdg-open" nil 0 nil file)
+      (message "Opening %s done" file)))
+#+end_src
+
+** Package management
+Try out packages without installing them
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package try
+    :ensure t)
+#+END_SRC
+
+* System Configuration
+Binding to kill daemon when running in server mode
+#+begin_src emacs-lisp :results none
+  (global-set-key (kbd "C-x 9") 'save-buffers-kill-emacs)
+#+end_src
+
+Set the home directory. (=home= is defined as a global property)
+ #+BEGIN_SRC emacs-lisp :results none
+   (setq default-directory home-directory)
+ #+END_SRC
+
+#+begin_src emacs-lisp :results none
+  ;; (setq-default ispell-program-name "aspell")
+#+end_src
+
+** TODO 
+- [ ] Tramp
+- [ ] Dired open externally
+- [ ] Shell configuration
+- [ ] Spell checker
+ 
+* IDE
+** IDE Tools
+Magit git porcelain
+#+begin_src emacs-lisp :results none
+  (use-package magit
+    :ensure t)
+#+end_src
+
+Language server client (LSP mode)
+#+begin_src emacs-lisp :results none
+  (use-package lsp-mode
+    :ensure t)
+#+end_src
+
+Flycheck mode
+#+begin_src emacs-lisp :results none
+  (use-package flycheck
+    :ensure t)
+#+end_src
+
+** Language Configuration
+*** Python
+#+begin_src emacs-lisp :results none
+  (add-hook 'python-mode-hook 'display-line-numbers-mode)
+  (setq
+   python-shell-interpreter python-interpreter-alias
+   python-shell-interpreter-args "-i")
+#+end_src
+
+*** C
+#+begin_src emacs-lisp :results none
+  (add-hook 'c-mode-hook 'display-line-numbers-mode)
+#+end_src
+
+*** YAML
+#+begin_src emacs-lisp :results none
+  (use-package yaml-mode
+    :ensure t)
+#+end_src
+
+*** Rust
+#+begin_src emacs-lisp :results none
+  (use-package rustic
+    :ensure t
+    :config (setq rustic-display-spinner nil))
+#+end_src
+
+*** Javascript
+#+begin_src emacs-lisp :results none
+    (use-package web-mode
+      :ensure t
+      :mode ("\\.html\\'"
+             "\\.css\\'"
+             "\\.php\\'"
+             "\\.phtml\\'")
+      :config
+      (add-hook 'web-mode-hook 'display-line-numbers-mode))
+
+    (use-package js2-mode
+      :ensure t
+      :mode "\\.js\\'"
+      :config
+      (add-hook 'js2-mode-hook 'display-line-numbers-mode))
+#+end_src
+
+*** PHP
+#+begin_src emacs-lisp :results none
+  (use-package php-mode
+    :ensure t
+    :config 
+    (add-hook 'php-mode-hook 'display-line-numbers-mode))
+#+end_src
+
+* Org mode
+** Org buffer
+Display formatting
+#+BEGIN_SRC emacs-lisp :results none
+  (setq org-startup-folded t)
+  ;; Org bullets
+  (use-package org-bullets
+    :ensure t
+    :config
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+    ;; (setq org-bullets-bullet-list '("◉" "⁑" "⁂" "❖"))
+    )
+
+  ;; Mixed pitch fonts
+  (use-package mixed-pitch
+    :ensure t
+    :config
+    (add-hook 'org-mode-hook #'mixed-pitch-mode))
+
+  ;; Olivetti mode
+  (use-package olivetti
+    :ensure t
+    :config
+    (add-hook 'org-mode-hook (lambda () (olivetti-set-width 80)))
+    (add-hook 'org-mode-hook #'olivetti-mode))
+#+END_SRC
+
+Keybindings
+#+BEGIN_SRC emacs-lisp :results none
+  (add-hook 'org-mode-hook
+	    (lambda ()
+	    (local-set-key (kbd "C-c t e") 'org-table-export)))
+#+END_SRC
+
+Add advice function to =org-create-inline-image= to change background colour property. This is useful for viewing transparent images on a dark background. Taken from [[http://kimi.im/2022-04-29-background-color-of-inline-image-for-orgmode][this page]]
+
+** Org babel
+Load languages for org babel
+#+BEGIN_SRC emacs-lisp :results none
+  (require 'org)
+  (require 'ox-latex)
+  (setq org-src-tab-acts-natively t) ;; tab in source blocks
+  (load (concat load-custom-path "/ob-php.el"))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t)
+     (octave . t)
+     (latex  . t)
+     (shell  . t)
+     (java   . t)
+     (js . t)
+     (C . t)
+     (php . t)
+     (sql . t)
+     (plantuml . t)))
+  (setq-default indent-tabs-mode nil)
+#+END_SRC
+
+Choose modes to use for various languages in the source editor
+#+begin_src emacs-lisp :results none
+  (push '("js" . js2) org-src-lang-modes)
+  (push '("html" . web) org-src-lang-modes)
+#+end_src
+
+This codeblock defines a function =cond-exp= to allow for conditional exportation of a codeblock to either .png or .pdf depending on selected export backend;
+#+BEGIN_SRC emacs-lisp :results none
+  (defun cond-exp (file-name)
+    (if (org-export-derived-backend-p org-export-current-backend 'latex)
+        (concat file-name ".pdf")
+      (concat file-name ".png")))
+#+END_SRC
+
+Remote machine aliases
+#+name: babel-remote-machines
+| Alias      | user  | path         |
+|------------+-------+--------------|
+| wsl:ubuntu | jonno | localhost:~/ |
+| piserv     | pi    | piserv:~/    |
+
+This function can be passed into the =:dir= argument with an alias to specify a remote path for execution
+#+begin_src emacs-lisp :results code :var data = babel-remote-machines :results none
+  (defun get-remote (alias)
+      (let ((row (cdr (assoc alias data))))
+        (concat
+         (pop row) "@"
+         (pop row))))
+#+end_src
+
+** Workflow
+TODO states
+   - Workflow: todo -> in-progress -> paused -> done
+   - Added timestamped tracking
+#+begin_src emacs-lisp :results none
+  (setq org-todo-keywords
+	'((sequence "TODO(t)" "IN-PROGRESS(i@/!)" "|" "PAUSED(p@/!)" "DONE(d!)")))
+  (setq org-log-into-drawer t)
+#+end_src
+
+Refiling
+#+begin_src emacs-lisp :results none
+  ;; Prompt for log on refile
+  (setq org-log-refile t)
+
+  ;; Set maximum refile target depth (default is 1)
+  ;; File-specific targets can be set by adding new lists
+  ;; where the first cons cell (nil below) is the filename
+  (setq org-refile-targets '((nil :maxlevel . 9)))
+
+  ;; Refile in a single go
+  (setq org-outline-path-complete-in-steps nil)
+
+  ;; Display nested refile targets in the form t1/t2/t3...
+  (setq org-refile-use-outline-path t)
+#+end_src
+
+Run note capture and publish configuration script (on the =notes= path)
+#+begin_src emacs-lisp :results none
+  ;; Run setup for note taking, journalling and publishing
+  (if notebook-repository-path
+      (org-babel-load-file (expand-file-name notebook-repository-path))
+    nil)
+#+end_src
+
+Add all org files under the home directory to the agenda
+#+begin_src emacs-lisp :results none
+  ;; (custom-set-variables
+  ;;  '(org-directory home-directory)
+  ;;  '(org-agenda-files (list org-directory)))  
+#+end_src
+
+** Document Export
+ Format code blocks with syntax highlighting in HTML export
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package htmlize
+    :ensure t)
+#+END_SRC
+
+Latex configuration
+#+begin_src emacs-lisp :results none
+  ;; latexmk doesn't seem to work with relative
+  ;; path names, so we're setting the command
+  ;; sequence used by org-latex-compile back to the
+  ;; old values
+  (setq org-latex-pdf-process
+        '("%latex -interaction nonstopmode -output-directory %o %f"
+          "%latex -interaction nonstopmode -output-directory %o %f"
+          "%latex -interaction nonstopmode -output-directory %o %f"))
+
+  ;; Packages to include for latex
+  ;; block generation
+  (setq org-latex-packages-alist (eval (car (get 'org-latex-packages-alist 'standard-value))))
+  (setq org-latex-packages-alist
+        (append org-latex-packages-alist
+                '(
+                  ("" "tikz" t)
+                  ("" "circuitikz" t)
+                  ("" "pgfplots" t)
+                  ("" "siunitx" t)
+                  ("" "amsmath" t)
+                  ("" "amssymb" t)
+                  ("" "import" t))))
+
+
+  ;; Add to preview environment list
+  (eval-after-load "preview"
+    '(add-to-list 'preview-default-preamble "\\PreviewEnvironment{tikzpicture}" t))
+  (eval-after-load "preview"
+    '(add-to-list 'preview-default-preamble "\\PreviewEnvironment{align}" t))
+
+  ;; Set program to generate preview images
+  (setq org-preview-latex-default-process 'dvisvgm)
+
+  ;; fix color handling in org-preview-latex-fragment
+  (let ((dvipng--plist (alist-get 'dvipng org-preview-latex-process-alist)))
+    (plist-put dvipng--plist :use-xcolor t)
+    (plist-put dvipng--plist :image-converter '("dvipng -D %D -T tight -o %O %f")))
+
+  ;; Syntax highlighting for source code listings
+  (require 'ox-latex)
+  (setq org-latex-listings t)
+  (add-to-list 'org-latex-packages-alist '("" "listings"))
+  (add-to-list 'org-latex-packages-alist '("" "xcolor"))
+
+  ;; Preamble for latex exporter
+  (add-to-list 'org-latex-classes
+               '("customArticle"
+                 "\\documentclass[11pt]{article}
+        \\usepackage[left=3cm,right=3cm,top=3cm,bottom=3cm]{geometry}
+        \\usepackage{titlesec}
+        \\setcounter{secnumdepth}{4}
+        \\usepackage{parskip}
+
+  \\usepackage{sectsty}
+  \\allsectionsfont{\\sffamily}
+  \\usepackage{enumitem}
+  \\setlist[description]{style=unboxed,font=\\sffamily\\bfseries}
+
+  \\makeatletter
+  \\renewcommand{\\maketitle}{%
+    \\begingroup\\parindent0pt
+    \\sffamily
+    \\Huge{\\bfseries\\@title}\\par\\bigskip
+    \\LARGE{\\bfseries\\@author}\\par\\medskip
+    \\normalsize\\@date\\par\\bigskip
+    \\endgroup\\@afterindentfalse\\@afterheading}
+
+        \\usepackage{xcolor}
+        \\usepackage{listings}
+        \\usepackage[position=auto, font={small,sl}]{caption}
+        \\definecolor{mygreen}{RGB}{42, 128, 46}
+        \\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+        \\definecolor{myblue}{RGB}{20 15, 115}
+        \\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+        \\lstset{
+          basicstyle=\\ttfamily\\footnotesize,
+          xleftmargin=0.5in,
+          backgroundcolor=\\color{backcolour!50},
+          breakatwhitespace=false,
+          breaklines=true,
+          postbreak=\\mbox{\\space},
+          commentstyle=\\color{mygray},
+          keywordstyle=\\color{mygreen},
+          identifierstyle=\\color{myblue},
+          numbers=left,
+          numbersep=10pt,
+          numberstyle=\\footnotesize\\color{mygray},
+          stringstyle=\\color{mymauve},
+          showstringspaces=false}"
+                 ("\\section{%s}" . "\\section*{%s}")
+                 ("\\subsection{%s}" . "\\subsection*{%s}")
+                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+  (setq org-latex-default-class "customArticle")
+
+  ;; Remove default 0.9\linewidth sizing of images in latex export
+  (setq org-latex-image-default-width "")
+#+end_src
+
+*** TODO
+- [ ] Citation manager
+
+* Document Production Tools
+Latex configuration, Auctex set up
+#+begin_src emacs-lisp :results none
+  (if (plist-get document-production :latex)
+      (progn
+        (use-package latex
+          :ensure auctex
+          :init (progn
+                  (setq
+                   TeX-auto-save t
+                   TeX-parse-self t
+                   TeX-save-query nil))
+          :hook ((LaTeX-mode . flyspell-buffer)
+                 (LaTeX-mode . LaTeX-math-mode)
+                 (LaTeX-mode . smartparens-mode)
+                 (LaTeX-mode . rainbow-delimiters-mode)))
+
+        (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
+        (add-hook 'doc-view-mode-hook 'auto-revert-mode)
+        (add-hook 'TeX-after-compilation-finished-functions
+                  #'TeX-revert-document-buffer))
+    nil)
+#+end_src
+
+PDF Tools
+#+begin_src emacs-lisp :results none
+  (if (plist-get document-production :pdf-tools)
+      (progn
+        (use-package tablist
+          :ensure t)
+
+        (use-package let-alist
+          :ensure t)
+
+        (use-package pdf-tools
+          :ensure t
+          :mode ("\\.pdf\\'" . pdf-view-mode)
+          :hook (pdf-view-mode . pdf-tools-enable-minor-modes)
+          :config (progn
+                    (pdf-tools-install)
+                    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+                          TeX-source-correlate-start-server t))))
+    nil)
+#+end_src
+
+Package for editing and executing GNUplot scripts
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package gnuplot
+    :ensure t 
+    :mode ("\\.gp\\'" . gnuplot-mode))
+#+END_SRC
+
+PlantUML mode
+#+name: plantuml-setup
+ #+begin_src emacs-lisp :var plantuml_dir="~/.emacs.d/plantuml.jar" :results none
+  (if (plist-get document-production :plantuml)
+      (use-package plantuml-mode
+        :ensure t
+        :init (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+        :config (setq org-plantuml-jar-path (expand-file-name plantuml_dir)))
+    nil)
+#+end_src
+* Networking
+Gopher client
+#+begin_src emacs-lisp :results none
+  (use-package elpher
+    :ensure t)
+#+end_src
+
+RSS client with elfeed
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package elfeed
+    :ensure t)
+
+  (use-package elfeed-org
+    :ensure t
+    :config
+    (elfeed-org)
+    (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org")))
+#+END_SRC
+
+  

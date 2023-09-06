@@ -1,0 +1,13 @@
+#+title: RSS Feeds
+
+* Feeds                                                              :elfeed:
+** News                                                                :news:
+*** Voice of America                                                    :VOA:
+**** [[https://www.voanews.com/api/zqgpqoekmmqo]]
+**** https://www.voanews.com/api/zyritequir
+**** https://www.voanews.com/api/zy$oqeqtii
+*** The new daily                                                       :TND:
+**** https://thenewdaily.com.au/feed/
+** Bushwalking
+*** Johnny Boys walkabout blog                                         :JBWB:
+**** http://www.johnevans.id.au/wp/feed/

@@ -1,0 +1,15 @@
+*
+!.gitignore
+
+# Org files to include
+!config.org
+!elfeed.org
+
+# Elisp sources to include
+!setup.el
+!emacs.el
+
+# Directories to include
+!snippets/
+!load/
+!temp/
