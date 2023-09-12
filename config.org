@@ -347,24 +347,34 @@ Add advice function to =org-create-inline-image= to change background colour pro
 
 ** Org babel
 Load languages for org babel
-#+BEGIN_SRC emacs-lisp :results none
-  (require 'org)
-  (require 'ox-latex)
-  (setq org-src-tab-acts-natively t) ;; tab in source blocks
-  (load (concat load-custom-path "/ob-php.el"))
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((python . t)
-     (octave . t)
-     (latex  . t)
-     (shell  . t)
-     (java   . t)
-     (js . t)
-     (C . t)
-     (php . t)
-     (sql . t)
-     (plantuml . t)))
-  (setq-default indent-tabs-mode nil)
+#+BEGIN_SRC emacs-lisp :results none :lexical t
+      (require 'org)
+      (require 'ox-latex)
+      (setq org-src-tab-acts-natively t) ;; tab in source blocks
+
+      (if babel-load-custom
+	  (progn
+	    (load-file (concat load-custom-path "/ob-php.el"))))
+
+      (let ((babel-to-load
+	     '((emacs-lisp . t)
+	       (python . t)
+	       (octave . t)
+	       (latex  . t)
+	       (shell  . t)
+	       (java   . t)
+	       (js . t)
+	       (C . t)
+	       (sql . t)
+	       (plantuml . t))))
+	(progn
+	  (if babel-load-custom
+	      (setq babel-to-load (append babel-to-load
+					  babel-load-custom)))
+	  (org-babel-do-load-languages
+	   'org-babel-load-languages babel-to-load)))
+
+      (setq-default indent-tabs-mode nil)
 #+END_SRC
 
 Choose modes to use for various languages in the source editor
@@ -555,7 +565,7 @@ Latex configuration
 * Document Production Tools
 Latex configuration, Auctex set up
 #+begin_src emacs-lisp :results none
-  (if (plist-get document-production :latex)
+  (if (plist-get document-production-tools :latex)
       (progn
         (use-package latex
           :ensure auctex
@@ -578,7 +588,7 @@ Latex configuration, Auctex set up
 
 PDF Tools
 #+begin_src emacs-lisp :results none
-  (if (plist-get document-production :pdf-tools)
+  (if (plist-get document-production-tools :pdf-tools)
       (progn
         (use-package tablist
           :ensure t)
@@ -607,7 +617,7 @@ Package for editing and executing GNUplot scripts
 PlantUML mode
 #+name: plantuml-setup
  #+begin_src emacs-lisp :var plantuml_dir="~/.emacs.d/plantuml.jar" :results none
-  (if (plist-get document-production :plantuml)
+  (if (plist-get document-production-tools :plantuml)
       (use-package plantuml-mode
         :ensure t
         :init (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))

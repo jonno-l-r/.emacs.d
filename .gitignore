@@ -6,7 +6,7 @@
 !elfeed.org
 
 # Elisp sources to include
-!setup.el
+!setup_template.el
 !emacs.el
 
 # Directories to include
