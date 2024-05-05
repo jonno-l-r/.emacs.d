@@ -309,6 +309,18 @@ Flycheck mode
     (add-hook 'php-mode-hook 'display-line-numbers-mode))
 #+end_src
 
+* Other Tools
+** Ledger
+#+begin_src emacs-lisp
+  (use-package ledger-mode
+    :ensure t
+    :mode "\\.ledger$")
+  (use-package flycheck-ledger
+    :ensure t)
+  (use-package company-ledger
+    :ensure t)
+#+end_src
+
 * Org mode
 ** Org buffer
 Display formatting
@@ -348,33 +360,38 @@ Add advice function to =org-create-inline-image= to change background colour pro
 ** Org babel
 Load languages for org babel
 #+BEGIN_SRC emacs-lisp :results none :lexical t
-      (require 'org)
-      (require 'ox-latex)
-      (setq org-src-tab-acts-natively t) ;; tab in source blocks
+  (use-package org-contrib
+    :ensure t)
 
+  (require 'org)
+  (require 'ox-latex)
+  (require 'ledger-mode)
+  (setq org-src-tab-acts-natively t) ;; tab in source blocks
+
+  (if babel-load-custom
+      (progn
+        (load-file (concat load-custom-path "/ob-php.el"))))
+
+  (let ((babel-to-load
+         '((emacs-lisp . t)
+           (ledger . t)
+           (python . t)
+           (octave . t)
+           (latex  . t)
+           (shell  . t)
+           (java   . t)
+           (js . t)
+           (C . t)
+           (sql . t)
+           (plantuml . t))))
+    (progn
       (if babel-load-custom
-	  (progn
-	    (load-file (concat load-custom-path "/ob-php.el"))))
+          (setq babel-to-load (append babel-to-load
+                                      babel-load-custom)))
+      (org-babel-do-load-languages
+       'org-babel-load-languages babel-to-load)))
 
-      (let ((babel-to-load
-	     '((emacs-lisp . t)
-	       (python . t)
-	       (octave . t)
-	       (latex  . t)
-	       (shell  . t)
-	       (java   . t)
-	       (js . t)
-	       (C . t)
-	       (sql . t)
-	       (plantuml . t))))
-	(progn
-	  (if babel-load-custom
-	      (setq babel-to-load (append babel-to-load
-					  babel-load-custom)))
-	  (org-babel-do-load-languages
-	   'org-babel-load-languages babel-to-load)))
-
-      (setq-default indent-tabs-mode nil)
+  (setq-default indent-tabs-mode nil)
 #+END_SRC
 
 Choose modes to use for various languages in the source editor
