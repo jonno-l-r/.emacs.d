@@ -139,7 +139,7 @@ Colour code bracket depth
   (use-package rainbow-delimiters
     :ensure t
     :defer t
-    :init (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+    :config (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
 #+END_SRC
 
 Keeps the point away from the top and bottom of the page to minimise sudden scroll jumps. Good-scroll smooths the scrolling action
@@ -315,14 +315,14 @@ Display formatting
 #+BEGIN_SRC emacs-lisp :results none
   (setq org-startup-folded t)
   ;; Org bullets
-  (use-package org-bullets
-    :ensure t
-    :config
-    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-    ;; (setq org-bullets-bullet-list '("◉" "⁑" "⁂" "❖"))
-    )
+  ;; (use-package org-bullets
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+  ;;   ;; (setq org-bullets-bullet-list '("◉" "⁑" "⁂" "❖"))
+  ;;   )
 
-  ;; Mixed pitch fonts
+  ;; ;; Mixed pitch fonts
   (use-package mixed-pitch
     :ensure t
     :config
@@ -334,6 +334,16 @@ Display formatting
     :config
     (add-hook 'org-mode-hook (lambda () (olivetti-set-width 80)))
     (add-hook 'org-mode-hook #'olivetti-mode))
+
+
+  (use-package org-modern
+    :ensure t
+    :hook ((org-mode . org-modern-mode)
+           (org-agenda-finalize . org-modern-agenda))
+    :config (setq
+             org-insert-heading-respect-content t
+             org-hide-emphasis-markers t
+             org-pretty-entities t))
 #+END_SRC
 
 Keybindings
@@ -345,36 +355,39 @@ Keybindings
 
 Add advice function to =org-create-inline-image= to change background colour property. This is useful for viewing transparent images on a dark background. Taken from [[http://kimi.im/2022-04-29-background-color-of-inline-image-for-orgmode][this page]]
 
+(setq line-spacing 2)
+
 ** Org babel
 Load languages for org babel
 #+BEGIN_SRC emacs-lisp :results none :lexical t
-      (require 'org)
-      (require 'ox-latex)
-      (setq org-src-tab-acts-natively t) ;; tab in source blocks
+  (require 'org)
+  (require 'ox-latex)
+  (setq org-src-tab-acts-natively t) ;; tab in source blocks
 
+  (if babel-load-custom
+      (progn
+        (load-file (concat load-custom-path "/ob-php.el"))))
+
+  (let ((babel-to-load
+         '((emacs-lisp . t)
+           (python . t)
+           (octave . t)
+           (latex  . t)
+           (shell  . t)
+           (java   . t)
+           (js . t)
+           (C . t)
+           (sql . t)
+           (gnuplot . t)
+           (plantuml . t))))
+    (progn
       (if babel-load-custom
-	  (progn
-	    (load-file (concat load-custom-path "/ob-php.el"))))
+          (setq babel-to-load (append babel-to-load
+                                      babel-load-custom)))
+      (org-babel-do-load-languages
+       'org-babel-load-languages babel-to-load)))
 
-      (let ((babel-to-load
-	     '((emacs-lisp . t)
-	       (python . t)
-	       (octave . t)
-	       (latex  . t)
-	       (shell  . t)
-	       (java   . t)
-	       (js . t)
-	       (C . t)
-	       (sql . t)
-	       (plantuml . t))))
-	(progn
-	  (if babel-load-custom
-	      (setq babel-to-load (append babel-to-load
-					  babel-load-custom)))
-	  (org-babel-do-load-languages
-	   'org-babel-load-languages babel-to-load)))
-
-      (setq-default indent-tabs-mode nil)
+  (setq-default indent-tabs-mode nil)
 #+END_SRC
 
 Choose modes to use for various languages in the source editor
@@ -561,6 +574,14 @@ Latex configuration
 
 *** TODO
 - [ ] Citation manager
+
+** Agenda
+#+begin_src elisp
+  (global-set-key (kbd "C-x c a") 'org-agenda)
+
+  (custom-set-variables
+   '(org-agenda-files agenda-paths))
+#+end_src
 
 * Document Production Tools
 Latex configuration, Auctex set up
