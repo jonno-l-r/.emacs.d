@@ -309,6 +309,23 @@ Flycheck mode
     (add-hook 'php-mode-hook 'display-line-numbers-mode))
 #+end_src
 
+* Other Tools
+** Ledger
+#+begin_src emacs-lisp
+  (use-package ledger-mode
+    :ensure t
+    :mode "\\.ledger$")
+  (use-package flycheck-ledger
+    :ensure t)
+  (use-package company-ledger
+    :ensure t)
+#+end_src
+** Jupyter
+#+begin_src emacs-lisp
+  (use-package jupyter
+    :ensure t)
+#+end_src
+
 * Org mode
 ** Org buffer
 Display formatting
@@ -360,13 +377,17 @@ Add advice function to =org-create-inline-image= to change background colour pro
 ** Org babel
 Load languages for org babel
 #+BEGIN_SRC emacs-lisp :results none :lexical t
+  (use-package org-contrib
+    :ensure t)
+
   (require 'org)
   (require 'ox-latex)
   (setq org-src-tab-acts-natively t) ;; tab in source blocks
 
   (if babel-load-custom
       (progn
-        (load-file (concat load-custom-path "/ob-php.el"))))
+        (load-file (concat load-custom-path "/ob-php.el"))
+        (load-file (concat load-custom-path "/ob-ledger.el"))))
 
   (let ((babel-to-load
          '((emacs-lisp . t)
@@ -379,7 +400,8 @@ Load languages for org babel
            (C . t)
            (sql . t)
            (gnuplot . t)
-           (plantuml . t))))
+           (plantuml . t)
+           (jupyter . t))))
     (progn
       (if babel-load-custom
           (setq babel-to-load (append babel-to-load
@@ -406,10 +428,11 @@ This codeblock defines a function =cond-exp= to allow for conditional exportatio
 
 Remote machine aliases
 #+name: babel-remote-machines
-| Alias      | user  | path         |
-|------------+-------+--------------|
-| wsl:ubuntu | jonno | localhost:~/ |
-| piserv     | pi    | piserv:~/    |
+| Alias      | user     | path         |
+|------------+----------+--------------|
+| wsl:ubuntu | jonno    | localhost:~/ |
+| piserv     | pi       | piserv:~/    |
+| thinkserv  | thinkpad | thinkpad:~/  |
 
 This function can be passed into the =:dir= argument with an alias to specify a remote path for execution
 #+begin_src emacs-lisp :results code :var data = babel-remote-machines :results none
