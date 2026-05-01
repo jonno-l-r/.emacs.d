@@ -1,4 +1,6 @@
 ;; Initial bootstrap configuration
+;; Don't edit this file. Make a copy and rename it '.emacs.el', then move it
+;; into the parent of the .emacs.d directory.
 ;; See "config.org" for full configuration script
 ;; This file must be in the same directory as the .emacs.d configuration
 ;; directory
@@ -13,11 +15,5 @@
              '("org" . "http://orgmode.org/elpa/"))
 (package-initialize)
 
-;; setup use-package
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-
 ;; bootstrap "config.org"
-(load-file (expand-file-name "~/.emacs.d/setup.el"))
 (org-babel-load-file(expand-file-name "~/.emacs.d/config.org"))

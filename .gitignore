@@ -11,5 +11,4 @@
 
 # Directories to include
 !snippets/
-!load/
 !temp/

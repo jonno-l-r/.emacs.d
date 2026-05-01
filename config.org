@@ -31,21 +31,21 @@ Theme installation and configuration. Currently using EF themes
     :ensure t
 
     :init
-    (setq ef-themes-headings
-          '((0 . (light variable-pitch 1.5))
-            (1 . (light variable-pitch 1.3))
-            (2 . (regular 1.2))
-            (3 . (1.1))
-            (t . (variable-pitch))))
+    ;; (setq ef-themes-headings
+    ;;       '((0 . (light variable-pitch 1.5))
+    ;;         (1 . (light variable-pitch 1.3))
+    ;;         (2 . (regular 1.2))
+    ;;         (3 . (1.1))
+    ;;         (t . (variable-pitch))))
     (mapc #'disable-theme custom-enabled-themes)
 
     :config
     (load-theme 'ef-night :no-confirm)
     (setq ef-themes-to-toggle '(ef-night ef-summer))
-    (advice-add 'org--create-inline-image
-                :filter-return #'org--create-inline-image-advice)
-    (advice-add 'ef-themes-toggle
-                :after #'ef-themes-toggle-org-image-background)
+    ;; (advice-add 'org--create-inline-image
+    ;;             :filter-return #'org--create-inline-image-advice)
+    ;; (advice-add 'ef-themes-toggle
+    ;;             :after #'ef-themes-toggle-org-image-background)
 
     :load-path "themes")
 #+END_SRC
@@ -53,29 +53,26 @@ Theme installation and configuration. Currently using EF themes
 ** Behaviour
 Default behaviour configuration
 #+BEGIN_SRC emacs-lisp :results none
-    (require 'recentf)
+  (setq
+   inhibit-startup-screen t
+   delete-by-moving-to-trash t
+   visible-bell t)
 
-    (setq
-     inhibit-startup-screen t
-     delete-by-moving-to-trash t
-     visible-bell t)
-  
-    (tool-bar-mode 0)
-    (scroll-bar-mode 0)
-    (menu-bar-mode 0)
+  (tool-bar-mode 0)
+  (scroll-bar-mode 0)
+  (menu-bar-mode 0)
 
-    ;; Typed text replaces highlighted region
-    (delete-selection-mode t)
+  ;; Typed text replaces highlighted region
+  (delete-selection-mode t)
 
-    ;; Visual line wrapping
-    (global-visual-line-mode t)
+  ;; Visual line wrapping
+  (global-visual-line-mode t)
 
-    ;; Winner Undo Mode
-    (winner-mode t)
+  ;; Winner Undo Mode
+  (winner-mode t)
 
-    ;; Call this function to allow arrow keys
-    ;; to cycles buffers in window
-    (windmove-default-keybindings)
+  ;; Which key mode (built-in since emacs 30)
+  (which-key-mode t)
 #+end_SRC
 
 The Ace Window package displays numbers in window corners - can jump between windows by typing the number
@@ -88,13 +85,6 @@ The Ace Window package displays numbers in window corners - can jump between win
       (custom-set-faces
        '(aw-leading-char-face
 	 ((t (:inherit ace-jump-face-foreground :height 3.0)))))))
-#+END_SRC
-
-Which key brings up key binding info
-#+BEGIN_SRC emacs-lisp :results none
-(use-package which-key
-	     :ensure t
-	     :config (which-key-mode))
 #+END_SRC
 
 Swiper search and Counsel find-file enhance searching mini-buffer completion. Counsel uses the same mini-buffer completion as swiper
@@ -139,18 +129,21 @@ Colour code bracket depth
   (use-package rainbow-delimiters
     :ensure t
     :defer t
-    :config (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+    :config (progn
+              (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+              (rainbow-delimiters-mode t)))
 #+END_SRC
 
 Keeps the point away from the top and bottom of the page to minimise sudden scroll jumps. Good-scroll smooths the scrolling action
 #+BEGIN_SRC emacs-lisp :results none
-  (use-package smooth-scrolling
-    :ensure t
-    :config (smooth-scrolling-mode t)
-    (setq smooth-scroll-margin 5))
+    (use-package smooth-scrolling
+      :ensure t
+      :config (smooth-scrolling-mode t)
+      (setq smooth-scroll-margin 5))
 
-  (use-package good-scroll
-    :ensure t)
+    (use-package good-scroll
+      :ensure t
+      :config (good-scroll-mode t))
 #+END_SRC
 
 Delete redundant backups
@@ -216,28 +209,11 @@ Try out packages without installing them
 #+END_SRC
 
 * System Configuration
-Binding to kill daemon when running in server mode
-#+begin_src emacs-lisp :results none
-  (global-set-key (kbd "C-x 9") 'save-buffers-kill-emacs)
-#+end_src
-
 Set the home directory. (=home= is defined as a global property)
  #+BEGIN_SRC emacs-lisp :results none
-   (setq default-directory home-directory)
- #+END_SRC
-
-#+begin_src emacs-lisp :results none
-  ;; (setq-default ispell-program-name "aspell")
-#+end_src
-
-** TODO 
-- [ ] Tramp
-- [ ] Dired open externally
-- [ ] Shell configuration
-- [ ] Spell checker
- 
+   (setq default-directory "~/")
+ #+END_SRC 
 * IDE
-** IDE Tools
 Magit git porcelain
 #+begin_src emacs-lisp :results none
   (use-package magit
@@ -255,35 +231,32 @@ Flycheck mode
   (use-package flycheck
     :ensure t)
 #+end_src
-
-** Language Configuration
-*** Python
+** Python
 #+begin_src emacs-lisp :results none
   (add-hook 'python-mode-hook 'display-line-numbers-mode)
   (setq
-   python-shell-interpreter python-interpreter-alias
+   python-shell-interpreter "python"
    python-shell-interpreter-args "-i")
 #+end_src
-
-*** C
+** C
 #+begin_src emacs-lisp :results none
   (add-hook 'c-mode-hook 'display-line-numbers-mode)
 #+end_src
 
-*** YAML
+** YAML
 #+begin_src emacs-lisp :results none
   (use-package yaml-mode
     :ensure t)
 #+end_src
 
-*** Rust
+** Rust
 #+begin_src emacs-lisp :results none
   (use-package rustic
     :ensure t
     :config (setq rustic-display-spinner nil))
 #+end_src
 
-*** Javascript
+** Javascript / Web
 #+begin_src emacs-lisp :results none
     (use-package web-mode
       :ensure t
@@ -301,29 +274,12 @@ Flycheck mode
       (add-hook 'js2-mode-hook 'display-line-numbers-mode))
 #+end_src
 
-*** PHP
+** PHP
 #+begin_src emacs-lisp :results none
   (use-package php-mode
     :ensure t
-    :config 
+    :config
     (add-hook 'php-mode-hook 'display-line-numbers-mode))
-#+end_src
-
-* Other Tools
-** Ledger
-#+begin_src emacs-lisp
-  (use-package ledger-mode
-    :ensure t
-    :mode "\\.ledger$")
-  (use-package flycheck-ledger
-    :ensure t)
-  (use-package company-ledger
-    :ensure t)
-#+end_src
-** Jupyter
-#+begin_src emacs-lisp
-  (use-package jupyter
-    :ensure t)
 #+end_src
 
 * Org mode
@@ -331,15 +287,8 @@ Flycheck mode
 Display formatting
 #+BEGIN_SRC emacs-lisp :results none
   (setq org-startup-folded t)
-  ;; Org bullets
-  ;; (use-package org-bullets
-  ;;   :ensure t
-  ;;   :config
-  ;;   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-  ;;   ;; (setq org-bullets-bullet-list '("◉" "⁑" "⁂" "❖"))
-  ;;   )
 
-  ;; ;; Mixed pitch fonts
+  ;; Mixed pitch fonts
   (use-package mixed-pitch
     :ensure t
     :config
@@ -349,7 +298,7 @@ Display formatting
   (use-package olivetti
     :ensure t
     :config
-    (add-hook 'org-mode-hook (lambda () (olivetti-set-width 80)))
+    (add-hook 'org-mode-hook (lambda () (olivetti-set-width 90)))
     (add-hook 'org-mode-hook #'olivetti-mode))
 
 
@@ -369,11 +318,6 @@ Keybindings
 	    (lambda ()
 	    (local-set-key (kbd "C-c t e") 'org-table-export)))
 #+END_SRC
-
-Add advice function to =org-create-inline-image= to change background colour property. This is useful for viewing transparent images on a dark background. Taken from [[http://kimi.im/2022-04-29-background-color-of-inline-image-for-orgmode][this page]]
-
-(setq line-spacing 2)
-
 ** Org babel
 Load languages for org babel
 #+BEGIN_SRC emacs-lisp :results none :lexical t
@@ -382,12 +326,8 @@ Load languages for org babel
 
   (require 'org)
   (require 'ox-latex)
+  (require 'ob-lilypond)
   (setq org-src-tab-acts-natively t) ;; tab in source blocks
-
-  (if babel-load-custom
-      (progn
-        (load-file (concat load-custom-path "/ob-php.el"))
-        (load-file (concat load-custom-path "/ob-ledger.el"))))
 
   (let ((babel-to-load
          '((emacs-lisp . t)
@@ -401,13 +341,9 @@ Load languages for org babel
            (sql . t)
            (gnuplot . t)
            (plantuml . t)
-           (jupyter . t))))
-    (progn
-      (if babel-load-custom
-          (setq babel-to-load (append babel-to-load
-                                      babel-load-custom)))
-      (org-babel-do-load-languages
-       'org-babel-load-languages babel-to-load)))
+           (lilypond . t))))
+    (org-babel-do-load-languages
+     'org-babel-load-languages babel-to-load))
 
   (setq-default indent-tabs-mode nil)
 #+END_SRC
@@ -426,24 +362,7 @@ This codeblock defines a function =cond-exp= to allow for conditional exportatio
       (concat file-name ".png")))
 #+END_SRC
 
-Remote machine aliases
-#+name: babel-remote-machines
-| Alias      | user     | path         |
-|------------+----------+--------------|
-| wsl:ubuntu | jonno    | localhost:~/ |
-| piserv     | pi       | piserv:~/    |
-| thinkserv  | thinkpad | thinkpad:~/  |
-
-This function can be passed into the =:dir= argument with an alias to specify a remote path for execution
-#+begin_src emacs-lisp :results code :var data = babel-remote-machines :results none
-  (defun get-remote (alias)
-      (let ((row (cdr (assoc alias data))))
-        (concat
-         (pop row) "@"
-         (pop row))))
-#+end_src
-
-** Workflow
+** Workflow and Agenda
 TODO states
    - Workflow: todo -> in-progress -> paused -> done
    - Added timestamped tracking
@@ -470,19 +389,18 @@ Refiling
   (setq org-refile-use-outline-path t)
 #+end_src
 
-Run note capture and publish configuration script (on the =notes= path)
-#+begin_src emacs-lisp :results none
-  ;; Run setup for note taking, journalling and publishing
-  (if notebook-repository-path
-      (org-babel-load-file (expand-file-name notebook-repository-path))
-    nil)
-#+end_src
-
 Add all org files under the home directory to the agenda
 #+begin_src emacs-lisp :results none
   ;; (custom-set-variables
   ;;  '(org-directory home-directory)
   ;;  '(org-agenda-files (list org-directory)))  
+#+end_src
+
+#+begin_src emacs-lisp :results none
+  (global-set-key (kbd "C-x c a") 'org-agenda)
+
+   (custom-set-variables
+  '(org-agenda-files agenda-paths))
 #+end_src
 
 ** Document Export
@@ -597,58 +515,57 @@ Latex configuration
 
 *** TODO
 - [ ] Citation manager
+- jupyternotebooks / org mode integration
+  
+* Document Production Tools
+:PROPERTIES:
+:header-args: :eval yes
+:END:
+Lilypond
+#+begin_src emacs-lisp :results none
+  (autoload 'LilyPond-mode "lilypond-mode")
+  (setq auto-mode-alist
+        (cons '("\\.ly$" . LilyPond-mode) auto-mode-alist))
 
-** Agenda
-#+begin_src elisp
-  (global-set-key (kbd "C-x c a") 'org-agenda)
-
-  (custom-set-variables
-   '(org-agenda-files agenda-paths))
+  (add-hook 'LilyPond-mode-hook (lambda () (turn-on-font-lock)))
 #+end_src
 
-* Document Production Tools
 Latex configuration, Auctex set up
 #+begin_src emacs-lisp :results none
-  (if (plist-get document-production-tools :latex)
-      (progn
-        (use-package latex
-          :ensure auctex
-          :init (progn
-                  (setq
-                   TeX-auto-save t
-                   TeX-parse-self t
-                   TeX-save-query nil))
-          :hook ((LaTeX-mode . flyspell-buffer)
-                 (LaTeX-mode . LaTeX-math-mode)
-                 (LaTeX-mode . smartparens-mode)
-                 (LaTeX-mode . rainbow-delimiters-mode)))
+  (use-package latex
+    :ensure auctex
+    :init (progn
+            (setq
+             TeX-auto-save t
+             TeX-parse-self t
+             TeX-save-query nil))
+    :hook ((LaTeX-mode . flyspell-buffer)
+           (LaTeX-mode . LaTeX-math-mode)
+           (LaTeX-mode . smartparens-mode)
+           (LaTeX-mode . rainbow-delimiters-mode)))
 
-        (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
-        (add-hook 'doc-view-mode-hook 'auto-revert-mode)
-        (add-hook 'TeX-after-compilation-finished-functions
-                  #'TeX-revert-document-buffer))
-    nil)
+  (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
+  (add-hook 'doc-view-mode-hook 'auto-revert-mode)
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'TeX-revert-document-buffer)
 #+end_src
 
 PDF Tools
 #+begin_src emacs-lisp :results none
-  (if (plist-get document-production-tools :pdf-tools)
-      (progn
-        (use-package tablist
-          :ensure t)
+  (use-package tablist
+    :ensure t)
 
-        (use-package let-alist
-          :ensure t)
+  (use-package let-alist
+    :ensure t)
 
-        (use-package pdf-tools
-          :ensure t
-          :mode ("\\.pdf\\'" . pdf-view-mode)
-          :hook (pdf-view-mode . pdf-tools-enable-minor-modes)
-          :config (progn
-                    (pdf-tools-install)
-                    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-                          TeX-source-correlate-start-server t))))
-    nil)
+  (use-package pdf-tools
+    :ensure t
+    :mode ("\\.pdf\\'" . pdf-view-mode)
+    :hook (pdf-view-mode . pdf-tools-enable-minor-modes)
+    :config (progn
+              (pdf-tools-install)
+              (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+                    TeX-source-correlate-start-server t)))
 #+end_src
 
 Package for editing and executing GNUplot scripts
@@ -661,12 +578,10 @@ Package for editing and executing GNUplot scripts
 PlantUML mode
 #+name: plantuml-setup
  #+begin_src emacs-lisp :var plantuml_dir="~/.emacs.d/plantuml.jar" :results none
-  (if (plist-get document-production-tools :plantuml)
-      (use-package plantuml-mode
-        :ensure t
-        :init (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
-        :config (setq org-plantuml-jar-path (expand-file-name plantuml_dir)))
-    nil)
+  (use-package plantuml-mode
+    :ensure t
+    :init (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+    :config (setq org-plantuml-jar-path (expand-file-name plantuml_dir)))
 #+end_src
 * Networking
 Gopher client
