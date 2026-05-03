@@ -107,21 +107,17 @@ Swiper search and Counsel find-file enhance searching mini-buffer completion. Co
     :ensure t)
 #+END_SRC
 
-Auto completion. Brings up a list of options when auto complete options are available. Can use tab to cycle through the list. Note that =M-/= is the default auto complete behaviour (which doesn't display the list of options)
+Corfu is a minimalist completion framework. It brings up a list at-point when auto complete options are available. Can use tab to cycle through the list. Note that =M-/= is the default auto complete behaviour (which doesn't display the list of options)
 #+BEGIN_SRC emacs-lisp :results none
-  (use-package auto-complete
+  (use-package company
     :ensure t
-    :init
-    (progn
-      (ac-config-default)
-      (global-auto-complete-mode t)))
-
+    :init (global-company-mode))
 
   (use-package smartparens
     :ensure t
-    :config (progn
-              (require 'smartparens-config))
-    (smartparens-mode))
+      :config (progn
+                (require 'smartparens-config))
+      (smartparens-mode))
 #+END_SRC
 
 Colour code bracket depth
@@ -220,10 +216,15 @@ Magit git porcelain
     :ensure t)
 #+end_src
 
-Language server client (LSP mode)
+Language server client (LSP mode) (must have the associated LSP server installed for each language)
 #+begin_src emacs-lisp :results none
   (use-package lsp-mode
+    :hook (python-mode . lsp)
     :ensure t)
+
+  (use-package lsp-ui
+    :ensure t
+    :commands lsp-ui-mode)
 #+end_src
 
 Flycheck mode
@@ -234,9 +235,8 @@ Flycheck mode
 ** Python
 #+begin_src emacs-lisp :results none
   (add-hook 'python-mode-hook 'display-line-numbers-mode)
-  (setq
-   python-shell-interpreter "python"
-   python-shell-interpreter-args "-i")
+  (setq python-shell-interpreter "python"
+        python-shell-interpreter-args "-i")
 #+end_src
 ** C
 #+begin_src emacs-lisp :results none
